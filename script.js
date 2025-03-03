@@ -5,7 +5,13 @@ const croupier = document.querySelector("#croupier");
 const bg = document.querySelectorAll(".bg");
 
 // Load audio files
-const sounds = [new Audio("./sound/meow.mp3"), new Audio("./sound/purr.mp3"), new Audio("./sound/win2.wav"), new Audio("./sound/win1.wav")];
+const sounds = [
+  new Audio("./sound/meow.mp3"),
+  new Audio("./sound/purr.mp3"),
+  new Audio("./sound/win2.wav"),
+  new Audio("./sound/win1.wav"),
+  new Audio("./sound/lever.mp3")
+];
 
 // Class definition for handling the card game
 class Cards {
@@ -23,7 +29,7 @@ class Cards {
       "./img/2.png",
       "./img/3.jpg",
       "./img/4.jpg",
-      "./img/5.jpeg"
+//      "./img/5.jpeg"
     ];
 
     // Index to track the current image
@@ -94,7 +100,9 @@ class Cards {
       cards[0].dataset.number == cards[1].dataset.number &&
       cards[0].dataset.number == cards[2].dataset.number
     ) {
-      // Set croupier image and play sounds
+      // Disable button immediately when a jackpot happens
+      this.button.disabled = true;
+  
       setTimeout(() => {
         this.background.forEach((e) => {
           e.style.display = "block";
@@ -103,8 +111,14 @@ class Cards {
         this.audio[2].play();
         this.audio[3].play();
       }, this.timeout);
+  
+      // Extend the cooldown before the button is enabled again
+      setTimeout(() => {
+        this.enableButton(); // Restore button functionality later
+      }, this.timeout * 3); // Adjust this multiplier based on how long the win animation is
     }
   }
+  
 
   // Method to reset the game state
   reset() {
@@ -112,11 +126,39 @@ class Cards {
     this.container.textContent = "";
   }
 
-  // Method to initialize the event listener for the button
+  // Method to disable the button and start the squish animation
+  disableButton() {
+    
+    this.button.disabled = true;
+    this.button.style.transform = "scaleY(0.6)"; // Squish
+    this.button.style.transformOrigin = "bottom"; // Anchor shrink to bottom    
+    this.button.style.transition = "transform 0.1s ease";
+    this.audio[4].play();
+
+    setTimeout(() => {
+      this.button.style.transform = "scaleY(1)"; // Quickly return to normal
+    }, 500); // Adjust this duration for how long the squish effect lasts
+  }
+
+  // Method to enable the button after a delay
+  enableButton() {
+    setTimeout(() => {
+      this.button.disabled = false;
+    }, this.timeout * 1.5); // Adjust timing based on animation duration
+  }
+
+  // Modify the init method to include button cooldown
   init() {
     this.button.addEventListener("click", () => {
+      if (this.button.disabled) return; // Prevent spam clicking
+
+      this.disableButton(); // Apply cooldown
       this.audio[1].play();
       this.loadCardImage();
+
+      setTimeout(() => {
+        this.enableButton(); // Restore after animation ends
+      }, this.timeout * 2.11); // Adjust based on animation duration
     });
   }
 }
